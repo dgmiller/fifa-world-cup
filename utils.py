@@ -37,9 +37,9 @@ def get_df():
     return df
 
 
-def data():
+def data(game=7):
     df = get_df()
-    #df = df[df['game']<=3]
+    df = df[df['game']<=game]
     team_to_index = {}
     for team,i in zip(teams, np.arange(1,25)):
         team_to_index[team] = i
@@ -73,12 +73,12 @@ def predict_match_outcome(team1, team2):
     print(team1, E_goals_team1, "\n", team2, E_goals_team2)
 
 
-def plot_goals():
+def plot_goals(n):
     matplotlib.rcParams['font.family'] = 'monospace'
-    bad = matplotlib.cm.get_cmap(name='Reds')
-    bad.set_bad("white",alpha=.1)
+    bad = matplotlib.cm.get_cmap(name='magma_r')
+    bad.set_bad("grey",alpha=.3)
     plt.figure(figsize=(10,10))
-    plt.imshow(data(),cmap=bad)
+    plt.imshow(np.log(data(game=n)+1),cmap=bad,alpha=.7)
     plt.xticks(np.arange(24),teams,rotation='vertical',fontsize=8)
     plt.yticks(np.arange(24),teams,fontsize=8)
     plt.xlabel("goals against")
@@ -95,6 +95,8 @@ def plot_goals():
     plt.show()
 
 #if __name__ == "__main__":
-#    plot_goals()
+#    plot_goals(3)
+#    plot_goals(4)
+
 
 ### END ###
