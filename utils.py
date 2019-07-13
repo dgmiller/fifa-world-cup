@@ -3,46 +3,69 @@ import numpy as np
 from scipy import stats
 import matplotlib
 import matplotlib.pyplot as plt
-
-teams = ["FRANCE",
-         "NORWAY",
-         "NIGERIA",
-         "KOREA",
-         "GERMANY",
-         "SPAIN",
-         "CHINA",
-         "SOUTH AFRICA",
-         "ITALY",
-         "AUSTRALIA",
-         "BRAZIL",
-         "JAMAICA",
-         "ENGLAND",
-         "JAPAN",
-         "ARGENTINA",
-         "SCOTLAND",
-         "NETHERLANDS",
-         "CANADA",
-         "CAMEROON",
-         "NEW ZEALAND",
-         "USA",
-         "SWEDEN",
-         "CHILE",
-         "THAILAND"]
+import pystan
+import pickle
+from TEAMS import *
 
 
-def get_df():
+def get_df(m=1,n=7, model=0):
+    """
+    Returns the dataframe with data for games in [m, n].
+
+    INPUT
+        m (int) first game to include, default=1
+        n (int) last game to include, default=7
+        model (int) determines how to compute the fail_to_save_rate, default=0
+
+    RETURNS
+        df (pandas.DataFrame) the dataset from worldcup2019.csv
+
+    """
     df = pd.read_csv("worldcup2019.csv")
     df['on_target_rate'] = df['on_target']/df['attempts']
-    df['save_rate'] = 1 - df['goals_against']/df['on_target_against']
+
+    if model == 0:
+        df['fail_to_save_rate'] = df['goals_against']/df['on_target_against']
+    elif model == 1:
+        df['fail_to_save_rate'] = 1-df['goals_against']/df['on_target_against']
+    elif model == 2:
+        df['fail_to_save_rate'] = (df['goals_against']/df['on_target_against']).mean()
+        mu = df['fail_to_save_rate'].mean()
+        df['fail_to_save_rate'] = .25*df['fail_to_save_rate'] + .75*mu
+    elif model == 3:
+        df['fail_to_save_rate'] = (df['goals_against']/df['on_target_against']).mean()
+    else:
+        raise ValueError("input not valid")
+
+    df = df.loc[(df['game']>=m) & (df['game']<=n)]
     return df
 
 
-def data(game=7):
-    df = get_df()
-    df = df[df['game']<=game]
+def get_team_to_index():
+    """
+    Returns a dictionary mapping a team name to its index.
+
+    RETURNS
+        team_to_index (dict) maps to an index that does not start at zero.
+    """
     team_to_index = {}
     for team,i in zip(teams, np.arange(1,25)):
         team_to_index[team] = i
+    return team_to_index
+   
+
+def get_goal_matrix(**kwargs):
+    """
+    Returns the matrix with actual goals scored between two teams.
+
+    INPUT
+        **kwargs passed to get_df()
+
+    RETURNS
+        G (numpy.array) 24x24 matrix of observed goals with nans elsewhere
+    """
+    df = get_df(**kwargs)
+    team_to_index = get_team_to_index()
 
     G = -np.ones((24,24))
     G[G==-1] = np.nan
@@ -51,12 +74,21 @@ def data(game=7):
         j = team_to_index[df.iloc[k]['opponent']]
         G[i-1, j-1] = df.iloc[k]['goals_for']
 
-
     return G
 
 
-def predict_match_outcome(team1, team2):
-    df = get_df()
+def logistic(x):
+    """
+    The logistic function of a variable x.
+     
+    """
+    return np.exp(x)/(np.exp(x)+1)
+
+
+def predict_match_outcome(team1, team2, df=None, verbose=True):
+    if df is None:
+        df = get_df()
+
 
     avg_on_target_team1 = df[df['team']==team1]['on_target_rate'].mean()
     avg_attempts_per_match_team1 = df[df['team']==team1]['attempts'].sum()/df[df['team']==team1]['game'].max()
@@ -64,21 +96,43 @@ def predict_match_outcome(team1, team2):
     avg_on_target_team2 = df[df['team']==team2]['on_target_rate'].mean()
     avg_attempts_per_match_team2 = df[df['team']==team2]['attempts'].sum()/df[df['team']==team2]['game'].max()
 
-    avg_save_rate_team1 = df[df['team']==team1]['save_rate'].mean()
-    avg_save_rate_team2 = df[df['team']==team2]['save_rate'].mean()
+    avg_fail_to_save_rate_team1 = df[df['team']==team1]['fail_to_save_rate'].mean()
+    avg_fail_to_save_rate_team2 = df[df['team']==team2]['fail_to_save_rate'].mean()
 
-    E_goals_team1 = avg_attempts_per_match_team1 * avg_on_target_team1 * avg_save_rate_team2
-    E_goals_team2 = avg_attempts_per_match_team2 * avg_on_target_team2 * avg_save_rate_team1
+    E_goals_team1 = avg_attempts_per_match_team1 * avg_on_target_team1 * avg_fail_to_save_rate_team2
+    E_goals_team2 = avg_attempts_per_match_team2 * avg_on_target_team2 * avg_fail_to_save_rate_team1
 
-    print(team1, E_goals_team1, "\n", team2, E_goals_team2)
+    Pwin_team1 = logistic(E_goals_team1 - E_goals_team2)
+    Pwin_team2 = 1 - Pwin_team1
+
+    if verbose:
+        if E_goals_team1 == max(E_goals_team1, E_goals_team2):
+            team1 += '*'
+        else:
+            team2 += '*'
+        print("\n----\n")
+        print(team1)
+        print('\texpected goals:', np.round(E_goals_team1,2))
+        print('\tprob of win   :', np.round(Pwin_team1,2))
+        print("\tavg attempts  :", np.round(avg_attempts_per_match_team1,2))
+        print("\tavg on target :", np.round(avg_on_target_team1,2))
+        print("\tavg save rate :", np.round(1-avg_fail_to_save_rate_team1,2))
+        print(team2)
+        print('\texpected goals:', np.round(E_goals_team2,2))
+        print('\tprob of win   :', np.round(Pwin_team2,2))
+        print("\tavg attempts  :", np.round(avg_attempts_per_match_team2,2))
+        print("\tavg on target :", np.round(avg_on_target_team2,2))
+        print("\tavg save rate :", np.round(1-avg_fail_to_save_rate_team2,2))
+    else:
+        return E_goals_team1, E_goals_team2, Pwin_team1, Pwin_team2
 
 
-def plot_goals(n):
+def plot_goals(**kwargs):
     matplotlib.rcParams['font.family'] = 'monospace'
-    bad = matplotlib.cm.get_cmap(name='magma_r')
+    bad = matplotlib.cm.get_cmap(name='Reds')
     bad.set_bad("grey",alpha=.3)
     plt.figure(figsize=(10,10))
-    plt.imshow(np.log(data(game=n)+1),cmap=bad,alpha=.7)
+    plt.imshow(np.log(get_goal_matrix(**kwargs)+1),cmap=bad,alpha=.7)
     plt.xticks(np.arange(24),teams,rotation='vertical',fontsize=8)
     plt.yticks(np.arange(24),teams,fontsize=8)
     plt.xlabel("goals against")
@@ -94,9 +148,123 @@ def plot_goals(n):
     ax.xaxis.set_label_position('top')
     plt.show()
 
+
+def EG_matrix(EG=True):
+    D = np.zeros((24,24))
+    df = get_df()
+    for i in range(24):
+        for j in range(24):
+            EG1,EG2,Pwin1,Pwin2 = predict_match_outcome(teams[i], teams[j], df=df, verbose=False)
+            if EG:
+                D[i,j] = EG1
+                D[j,i] = EG2
+            else:
+                D[i,j] = Pwin1
+                D[j,i] = Pwin2
+    return D
+
+
+def plot_win_probability(D=None,cmap='coolwarm'):
+    matplotlib.rcParams['font.family'] = 'monospace'
+    fig,ax = plt.subplots(figsize=(10,10))
+    if D is None:
+        D = EG_matrix(EG=False)
+    plt.imshow(D,cmap=cmap,alpha=.7)
+    plt.xticks(np.arange(24),teams,rotation='vertical',fontsize=8)
+    plt.yticks(np.arange(24),teams,fontsize=8)
+    #plt.ylabel("(good teams have red rows and blue columns)",labelpad=15)
+    #plt.xlabel("(red = win, blue = lose)",labelpad=15)
+    #plt.title("Probability of ROW winning against COLUMN")
+    plt.tight_layout(pad=6.0,rect=(0,-.25,1,1))
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.tick_top()
+    ax.xaxis.set_label_position('top')
+    plt.show()
+
+
+def predict_matches(df, matches_list):
+    for t in matches_list:
+        team1,team2 = t
+        predict_match_outcome(team1, team2, df=df)
+
+
+
+def get_stan_data(**kwargs):
+
+    df = get_df(**kwargs)
+    matches = np.array(teamsGS + teams16 + teamsQF + teamsSF + teamsFF)
+    team_to_index = get_team_to_index()
+    G = get_goal_matrix()
+    I = list()
+    J = list()
+
+    N = matches.shape[0]
+    T = 24
+    Y = np.zeros((T,T))
+    for n in range(N):
+        i = team_to_index[matches[n,0]]
+        j = team_to_index[matches[n,1]]
+        I.append(i)
+        J.append(j)
+        Y[i-1,j-1] = G[i-1,j-1]
+        Y[j-1,i-1] = G[j-1,i-1]
+
+    X = EG_matrix()
+
+    X1 = np.zeros((2,T))
+    X2 = np.zeros((2,T))
+    X3 = np.zeros((2,T))
+
+    for team in teams:
+        teamdf = df[df['team']==team]
+        i = team_to_index[team]
+
+        X1[0,i-1] = teamdf['attempts'].mean()
+        X1[1,i-1] = teamdf['attempts'].var()
+
+        X2[0,i-1] = teamdf['on_target'].sum() + 1
+        X2[1,i-1] = teamdf['off_target'].sum() + 1
+
+        X3[0,i-1] = teamdf['goals_against'].sum() + 1
+        X3[1,i-1] = teamdf['on_target_against'].sum() - X3[0,i-1] + 1
+
+
+    stan_data = {'N':N,
+                 'T':T,
+                 'I':I,
+                 'J':J,
+                 'X':X,
+                 'X1':X1,
+                 'X2':X2,
+                 'X3':X3,
+                 'Y':Y.astype(np.int64)}
+    return stan_data
+
+
+
+
+def run_stan_model(model_name, m=1, n=7, **kwargs):
+    data = get_stan_data(m=m, n=n)
+    with open(model_name, 'r') as f:
+        stan_model = f.read()
+    try:
+        sm = pickle.load(open('{0}.pkl'.format(model_name),'rb'))
+    except:
+        sm = pystan.StanModel(model_code=stan_model)
+        with open('{0}.pkl'.format(model_name), 'wb') as f:
+            pickle.dump(sm, f)
+    FIT = sm.sampling(data, **kwargs)
+    return FIT
+
+
 #if __name__ == "__main__":
-#    plot_goals(3)
-#    plot_goals(4)
+#    plot_goals(4,6)
+#    plot_goals(1,3)
+#    plot_goals(1,7)
 
 
 ### END ###
