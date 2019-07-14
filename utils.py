@@ -1,8 +1,5 @@
 import pandas as pd
 import numpy as np
-from scipy import stats
-import matplotlib
-import matplotlib.pyplot as plt
 import pystan
 import pickle
 from TEAMS import *
@@ -127,27 +124,6 @@ def predict_match_outcome(team1, team2, df=None, verbose=True):
         return E_goals_team1, E_goals_team2, Pwin_team1, Pwin_team2
 
 
-def plot_goals(**kwargs):
-    matplotlib.rcParams['font.family'] = 'monospace'
-    bad = matplotlib.cm.get_cmap(name='Reds')
-    bad.set_bad("grey",alpha=.3)
-    plt.figure(figsize=(10,10))
-    plt.imshow(np.log(get_goal_matrix(**kwargs)+1),cmap=bad,alpha=.7)
-    plt.xticks(np.arange(24),teams,rotation='vertical',fontsize=8)
-    plt.yticks(np.arange(24),teams,fontsize=8)
-    plt.xlabel("goals against")
-    plt.ylabel("goals for")
-    plt.grid(alpha=.15)
-    #plt.colorbar(shrink=.5, orientation='horizontal')
-    ax = plt.gca()
-    ax.spines['top'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.xaxis.tick_top()
-    ax.xaxis.set_label_position('top')
-    plt.show()
-
 
 def EG_matrix(EG=True):
     D = np.zeros((24,24))
@@ -163,27 +139,6 @@ def EG_matrix(EG=True):
                 D[j,i] = Pwin2
     return D
 
-
-def plot_win_probability(D=None,cmap='coolwarm'):
-    matplotlib.rcParams['font.family'] = 'monospace'
-    fig,ax = plt.subplots(figsize=(10,10))
-    if D is None:
-        D = EG_matrix(EG=False)
-    plt.imshow(D,cmap=cmap,alpha=.7)
-    plt.xticks(np.arange(24),teams,rotation='vertical',fontsize=8)
-    plt.yticks(np.arange(24),teams,fontsize=8)
-    #plt.ylabel("(good teams have red rows and blue columns)",labelpad=15)
-    #plt.xlabel("(red = win, blue = lose)",labelpad=15)
-    #plt.title("Probability of ROW winning against COLUMN")
-    plt.tight_layout(pad=6.0,rect=(0,-.25,1,1))
-    ax = plt.gca()
-    ax.spines['top'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.xaxis.tick_top()
-    ax.xaxis.set_label_position('top')
-    plt.show()
 
 
 def predict_matches(df, matches_list):
@@ -260,11 +215,6 @@ def run_stan_model(model_name, m=1, n=7, **kwargs):
     FIT = sm.sampling(data, **kwargs)
     return FIT
 
-
-#if __name__ == "__main__":
-#    plot_goals(4,6)
-#    plot_goals(1,3)
-#    plot_goals(1,7)
 
 
 ### END ###
