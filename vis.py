@@ -46,8 +46,7 @@ def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
 
     if fname:
         plt.savefig(fname)
-    else:
-        plt.show()
+    plt.show()
 
 
 
