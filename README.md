@@ -60,7 +60,7 @@ for i,team in enumerate(utils.teams):
     24 	 THAILAND
 
 
-Now let's create a 24x24 matrix with entries corresponding to the number of goals team $i$ scored against team $j$ in the group stage. The color corresponds to the numeric value of the goals scored with grey corresponding to empty values in the matrix. The empty values are exactly the values we want to fill. This is a matrix completion problem; our goal is to fill in this matrix with some estimate of the number of goals we expect each team to score on average. That is, we want to compute $E[g_{i,j}]$ where $g$ is the number of goals scored by team $i$ against team $j$.
+Now let's create a 24x24 matrix with entries corresponding to the number of goals team ```i``` scored against team ```j``` in the group stage. The color corresponds to the numeric value of the goals scored with grey corresponding to empty values in the matrix. The empty values are exactly the values we want to fill. This is a matrix completion problem; our goal is to fill in this matrix with some estimate of the number of goals we expect each team to score on average. That is, we want to compute ```E[g_{i,j}]``` where ```g``` is the number of goals scored by team ```i``` against team ```j```.
 
 
 ```python
@@ -280,9 +280,9 @@ df.sample(10)
 
 ## The MOM Estimator
 
-Expected goals boils down to Arguably, the simplest way to estimate $E[g_{i,j}]$ is to use the Method-of-Moments (MOM) estimator. The way to do this is $E[g_{i,j}] = E[attempts * on\_target\_rate * fail\_to\_save\_rate]$. For simplicity, let's assume that $attempts_i$, $on\_target\_rate_i$, and $fail\_to\_save\_rate_j$ are independent. This is a strong assumption but (spoiler alert!) this is not going to be our final model anyway. Assuming independence, we can separate out the expectation operator for each of the variables.
+Expected goals boils down to Arguably, the simplest way to estimate ```E[g_{i,j}]``` is to use the Method-of-Moments (MOM) estimator. The way to do this is ```E[g_{i,j}] = E[attempts * on\_target\_rate * fail\_to\_save\_rate]```. For simplicity, let's assume that ```attempts_i```, ```on\_target\_rate_i```, and ```fail\_to\_save\_rate_j``` are independent. This is a strong assumption but (spoiler alert!) this is not going to be our final model anyway. Assuming independence, we can separate out the expectation operator for each of the variables.
 
-$E[g_{i,j}] = E[attempts_i] * E[on\_target\_rate_i] * E[fail\_to\_save\_rate_j]$.
+```E[g_{i,j}] = E[attempts_i] * E[on\_target\_rate_i] * E[fail\_to\_save\_rate_j]```.
 
 The MOM tells us we can just substitute each of these expectations with the empirically observed averages from the data. I built a function to do just that called `EG_matrix()`. The matrix is printed below.
 
@@ -419,7 +419,7 @@ vis.plot_goal_matrix(G_all)
 
 The MOM estimator is a simple way to estimate the quality of a team and predict the outcome of a match. With not very much data, we shouldn't place a lot of confidence in the MOM estimator. Scenarios with small amounts of data but some good prior knowledge calls for a more Bayesian approach.
 
-A simple Bayesian model of soccer matches models scored goals as a Poisson distribution, $g_{i,j} \sim Poisson(\theta_{i,j})$. The parameter $\theta_{i,j}$ is a rate parameter which in this example can be interpreted as the average number of goals scored in 90 minutes for team $i$ against team $j$. Note that $\theta_{i,j}$ does not have to be an integer---it can take on any real value greater than zero. We don't really know what $\theta_{i,j}$ is for each team, so maybe we should put a hyperprior on that. How should we choose the hyperparameters? Why not use the MOM estimator for the hyperparameters? What we get is $\theta \sim Normal(\mu, \sigma)$ where $\mu$ is the MOM estimated mean and $\sigma$ is the MOM estimated variance. The full model in Stan is written as follows.
+A simple Bayesian model of soccer matches models scored goals as a Poisson distribution, ```g_{i,j} \sim Poisson(\theta_{i,j})```. The parameter ```\theta_{i,j}``` is a rate parameter which in this example can be interpreted as the average number of goals scored in 90 minutes for team ```i``` against team ```j```. Note that ```\theta_{i,j}``` does not have to be an integer---it can take on any real value greater than zero. We don't really know what ```\theta_{i,j}``` is for each team, so maybe we should put a hyperprior on that. How should we choose the hyperparameters? Why not use the MOM estimator for the hyperparameters? What we get is ```\theta \sim Normal(\mu, \sigma)``` where ```\mu``` is the MOM estimated mean and ```\sigma``` is the MOM estimated variance. The full model in Stan is written as follows.
 
 
 ```python
@@ -624,17 +624,17 @@ The predictions looks very similar to the MOM estimator matrix. That makes sense
 
 ## A More Structural Poisson Model
 
-One way we can improve this model is by deconstructing the $\theta_{i,j}$ into it's various components. By adding structure to the model, we will improve estimation. Recall how we computed the MOM estimate:
+One way we can improve this model is by deconstructing the ```\theta_{i,j}``` into it's various components. By adding structure to the model, we will improve estimation. Recall how we computed the MOM estimate:
 
-$E[g_{i,j}] = E[attempts_i] * E[on\_target\_rate_i] * E[fail\_to\_save\_rate_j]$.
+```E[g_{i,j}] = E[attempts_i] * E[on\_target\_rate_i] * E[fail\_to\_save\_rate_j]```.
 
 Let's improve our model by giving each of these independent variables its own hyperprior. For simplicity, we can assign a normal distribution to the number of attempts with the mean and variance computed from the empirical data as before. This is reasonable.
 
 To model the on-target and failure-to-save rates, we can use the beta distribution. One way to interpret the two parameters of a beta distribution is as "pseudocounts" for the number of successes and failures respectively of a Bernoulli process.
 
-$rate \sim Beta(\alpha, \beta)$
+```rate \sim Beta(\alpha, \beta)```
 
-Thus, we can model the on-target and failure-to-save rates with a beta distribution. Using the on-target rate as an example, the hyperparameter $\alpha$ is chosen to be equal to the number of shots on-target + 1. Likewise, the hyperparameter $\beta$ is chosen to be equal to the number of shots off-target + 1. The addition of the ones has to do with the interpretation of the $Beta(1,1)$ distribution, which is the same as a uniform distribution between 0 and 1. In other words, we know that shots can be on-target and they can be off-target. The failure-to-save rate hyperparameters are chosen similarly with a success being the number of goals scored against the opponent and a failure being the number of shots on-target minus the number of goals scored against the opponent.
+Thus, we can model the on-target and failure-to-save rates with a beta distribution. Using the on-target rate as an example, the hyperparameter ```\alpha``` is chosen to be equal to the number of shots on-target + 1. Likewise, the hyperparameter ```\beta``` is chosen to be equal to the number of shots off-target + 1. The addition of the ones has to do with the interpretation of the ```Beta(1,1)``` distribution, which is the same as a uniform distribution between 0 and 1. In other words, we know that shots can be on-target and they can be off-target. The failure-to-save rate hyperparameters are chosen similarly with a success being the number of goals scored against the opponent and a failure being the number of shots on-target minus the number of goals scored against the opponent.
 
 Let's see how this model fares.
 
@@ -837,6 +837,3 @@ vis.plot_goal_matrix(G_all)
 These predictions are much better than those of the previous two models. By adding structure to the model, we were able to improve the predictions.
 
 
-```python
-
-```
