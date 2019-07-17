@@ -71,11 +71,11 @@ vis.plot_goal_matrix(G_all)
 ```
 
 
-![png](output_5_0.png)
+![png](images/output_5_0.png)
 
 
 
-![png](output_5_1.png)
+![png](images/output_5_1.png)
 
 
 Below is a sample of the dataset we will work with. The variables are the number of goals scored, number of attempts to score, how many attempts were on-target, and how many attempts were off-target. From those numbers, I also created two variables for convenience, the rate at which shots were on-target in a match and the rate at which the keeper failed to save a shot that was on-target.
@@ -401,7 +401,7 @@ vis.plot_goal_matrix(EG_MOM)
 ```
 
 
-![png](output_11_0.png)
+![png](images/output_11_0.png)
 
 
 Compare these predictions to the actual observed scores from the tournament. Remember, the model has access to (only) the group stage data.
@@ -412,7 +412,7 @@ vis.plot_goal_matrix(G_all)
 ```
 
 
-![png](output_13_0.png)
+![png](images/output_13_0.png)
 
 
 ## The Bayesian Approach
@@ -606,7 +606,7 @@ vis.plot_goal_matrix(EG_poisson.mean(axis=0))
 ```
 
 
-![png](output_20_0.png)
+![png](images/output_20_0.png)
 
 
 Again, compare with the actual observed scores.
@@ -617,7 +617,7 @@ vis.plot_goal_matrix(G_all)
 ```
 
 
-![png](output_22_0.png)
+![png](images/output_22_0.png)
 
 
 The predictions looks very similar to the MOM estimator matrix. That makes sense because we used the MOM estimator to inform the hyperprior for our Poisson model. However, it still looks like not much of an improvement. Can we do better? (We can.)
@@ -820,7 +820,7 @@ vis.plot_goal_matrix(EG_poisson2.mean(axis=0))
 ```
 
 
-![png](output_27_0.png)
+![png](images/output_27_0.png)
 
 
 Compare to the actual observed goals.
@@ -831,7 +831,7 @@ vis.plot_goal_matrix(G_all)
 ```
 
 
-![png](output_29_0.png)
+![png](images/output_29_0.png)
 
 
 These predictions are much better than those of the previous two models. By adding structure to the model, we were able to improve the predictions.
