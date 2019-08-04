@@ -2,7 +2,14 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from TEAMS import *
+
+year = input("YEAR: ")
+if year == '2019':
+    from TEAMS19 import *
+elif year == '2018':
+    from TEAMS18 import *
+else:
+    print("NO DATA AVAILABLE FOR YEAR {0}".format(year))
 
 
 def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
@@ -16,8 +23,8 @@ def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
     else:
         plt.imshow(G, cmap=bad, **kwargs)
 
-    plt.xticks(np.arange(24),teams,rotation='vertical',fontsize=8)
-    plt.yticks(np.arange(24),teams,fontsize=8)
+    plt.xticks(np.arange(len(teams)),teams,rotation='vertical',fontsize=8)
+    plt.yticks(np.arange(len(teams)),teams,fontsize=8)
 
     if score:
         plt.ylabel("home",labelpad=15)
@@ -33,8 +40,8 @@ def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
     ax.spines['right'].set_visible(False)
     ax.xaxis.tick_top()
     ax.xaxis.set_label_position('top')
-    for i in range(24):
-        for j in range(24):
+    for i in range(len(teams)):
+        for j in range(len(teams)):
             if not G[i,j] >= 0:
                 continue
             else:
@@ -42,7 +49,11 @@ def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
                     tt = "{0}-{1}".format(G[i,j].astype(int),G[j,i].astype(int))
                 else:
                     tt = "{0}".format(G[i,j].astype(int))
-                text = ax.text(j,i,tt,ha='center',va='center',color='k',alpha=.5)
+                if len(teams) > 24:
+                    fsize = '6'
+                else:
+                    fsize = '8'
+                text = ax.text(j,i,tt,ha='center',va='center',color='k',alpha=.5,size='6')
 
     if fname:
         plt.savefig(fname)
