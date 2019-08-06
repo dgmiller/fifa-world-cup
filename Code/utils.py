@@ -2,17 +2,20 @@ import pandas as pd
 import numpy as np
 import pystan
 import pickle
-
-year = input("YEAR: ")
-if year == '2019':
-    from TEAMS19 import *
-elif year == '2018':
-    from TEAMS18 import *
-else:
-    print("NO DATA AVAILABLE FOR YEAR {0}".format(year))
+from TEAMS import team_dict
 
 
-def get_df(m=1,n=7, model=0):
+def get_teams(year):
+    teams = team_dict[year]['teams']
+    teamsGS = team_dict[year]['teamsGS']
+    teams16 = team_dict[year]['teams16']
+    teamsQF = team_dict[year]['teamsQF']
+    teamsSF = team_dict[year]['teamsSF']
+    teamsFF = team_dict[year]['teamsFF']
+    return teams, teamsGS, teams16, teamsQF, teamsSF, teamsFF
+
+
+def get_df(year, m=1,n=7, model=0):
     """
     Returns the dataframe with data for games in [m, n].
 
@@ -45,7 +48,7 @@ def get_df(m=1,n=7, model=0):
     return df
 
 
-def get_team_to_index():
+def get_team_to_index(teams):
     """
     Returns a dictionary mapping a team name to its index.
 
@@ -69,7 +72,7 @@ def get_goal_matrix(**kwargs):
         G (numpy.array) 24x24 matrix of observed goals with nans elsewhere
     """
     df = get_df(**kwargs)
-    team_to_index = get_team_to_index()
+    team_to_index = get_team_to_index(teams)
 
     G = -np.ones((len(teams),len(teams)))
     G[G==-1] = np.nan
@@ -159,7 +162,7 @@ def get_stan_data(**kwargs):
 
     df = get_df(**kwargs)
     matches = np.array(teamsGS + teams16 + teamsQF + teamsSF + teamsFF)
-    team_to_index = get_team_to_index()
+    team_to_index = get_team_to_index(teams)
     G = get_goal_matrix()
     I = list()
     J = list()
@@ -209,8 +212,8 @@ def get_stan_data(**kwargs):
 
 
 
-def run_stan_model(model_name, m=1, n=7, **kwargs):
-    data = get_stan_data(m=m, n=n)
+def run_stan_model(model_name, year, m=1, n=7, **kwargs):
+    data = get_stan_data(year, m=m, n=n)
     with open(model_name, 'r') as f:
         stan_model = f.read()
     try:
