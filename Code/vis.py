@@ -2,17 +2,12 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-
-year = input("YEAR: ")
-if year == '2019':
-    from TEAMS19 import *
-elif year == '2018':
-    from TEAMS18 import *
-else:
-    print("NO DATA AVAILABLE FOR YEAR {0}".format(year))
+from utils import get_teams
 
 
-def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
+
+def plot_goal_matrix(year, G, score=False, colormap='Reds', fname=None, **kwargs):
+    teams = get_teams(year)[0]
     mpl.rcParams['font.family'] = 'monospace'
     fig,ax = plt.subplots(figsize=(10,10))
 

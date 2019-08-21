@@ -25,7 +25,7 @@ def get_df(year, m=1,n=7, model=0):
         model (int) determines how to compute the fail_to_save_rate, default=0
 
     RETURNS
-        df (pandas.DataFrame) the dataset from worldcup2019.csv
+        df (pandas.DataFrame) the dataset from worldcup[year].csv
 
     """
     df = pd.read_csv("../Data/worldcup{0}.csv".format(year))
@@ -61,7 +61,7 @@ def get_team_to_index(teams):
     return team_to_index
    
 
-def get_goal_matrix(**kwargs):
+def get_goal_matrix(year, **kwargs):
     """
     Returns the matrix with actual goals scored between two teams.
 
@@ -71,7 +71,8 @@ def get_goal_matrix(**kwargs):
     RETURNS
         G (numpy.array) 24x24 matrix of observed goals with nans elsewhere
     """
-    df = get_df(**kwargs)
+    teams = get_teams(year)[0]
+    df = get_df(year, **kwargs)
     team_to_index = get_team_to_index(teams)
 
     G = -np.ones((len(teams),len(teams)))
@@ -92,9 +93,9 @@ def logistic(x):
     return np.exp(x)/(np.exp(x)+1)
 
 
-def predict_match_outcome(team1, team2, df=None, verbose=True):
+def predict_match_outcome(year, team1, team2, df=None, verbose=True):
     if df is None:
-        df = get_df()
+        df = get_df(year)
 
 
     avg_on_target_team1 = df[df['team']==team1]['on_target_rate'].mean()
@@ -135,12 +136,13 @@ def predict_match_outcome(team1, team2, df=None, verbose=True):
 
 
 
-def EG_matrix(EG=True):
+def EG_matrix(year, m=1, n=3, EG=True):
+    teams = get_teams(year)[0]
     D = np.zeros((len(teams),len(teams)))
-    df = get_df()
+    df = get_df(year, m=m, n=n)
     for i in range(len(teams)):
         for j in range(len(teams)):
-            EG1,EG2,Pwin1,Pwin2 = predict_match_outcome(teams[i], teams[j], df=df, verbose=False)
+            EG1,EG2,Pwin1,Pwin2 = predict_match_outcome(year, teams[i], teams[j], df=df, verbose=False)
             if EG:
                 D[i,j] = EG1
                 D[j,i] = EG2
@@ -154,16 +156,18 @@ def EG_matrix(EG=True):
 def predict_matches(df, matches_list):
     for t in matches_list:
         team1,team2 = t
-        predict_match_outcome(team1, team2, df=df)
+        predict_match_outcome(year, team1, team2, df=df)
 
 
 
-def get_stan_data(**kwargs):
+def get_stan_data(year, **kwargs):
 
-    df = get_df(**kwargs)
+    teams,teamsGS,teams16,teamsQF,teamsSF,teamsFF = get_teams(year)
+
+    df = get_df(year, **kwargs)
     matches = np.array(teamsGS + teams16 + teamsQF + teamsSF + teamsFF)
     team_to_index = get_team_to_index(teams)
-    G = get_goal_matrix()
+    G = get_goal_matrix(year)
     I = list()
     J = list()
 
@@ -178,7 +182,7 @@ def get_stan_data(**kwargs):
         Y[i-1,j-1] = G[i-1,j-1]
         Y[j-1,i-1] = G[j-1,i-1]
 
-    X = EG_matrix()
+    X = EG_matrix(year)
 
     X1 = np.zeros((2,T))
     X2 = np.zeros((2,T))
