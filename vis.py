@@ -4,14 +4,6 @@ from utils import get_team_to_index
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-year = input("YEAR: ")
-if year == '2019':
-    from TEAMS19 import *
-elif year == '2018':
-    from TEAMS18 import *
-else:
-    print("NO DATA AVAILABLE FOR YEAR {0}".format(year))
-
 
 def truncate(i, j=8):
     if i > 6:
@@ -62,18 +54,10 @@ def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
                     tt = "{0}-{1}".format(G[i,j].astype(int),G[j,i].astype(int))
                 else:
                     tt = "{0}".format(G[i,j].astype(int))
-<<<<<<< HEAD:vis.py
                 if G[i,j] > 6:
                     text = ax.text(j,i,tt,ha='center',va='center',color='white',alpha=.5)
                 else:
                     text = ax.text(j,i,tt,ha='center',va='center',color='k',alpha=.5)
-=======
-                if len(teams) > 24:
-                    fsize = '6'
-                else:
-                    fsize = '8'
-                text = ax.text(j,i,tt,ha='center',va='center',color='k',alpha=.5,size='6')
->>>>>>> master:Code/vis.py
 
     if fname:
         plt.savefig(fname)
