@@ -1,0 +1,127 @@
+\documentclass{article}
+
+
+\usepackage{arxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+
+\title{Predicting the Outcomes of FIFA World Cup Tournaments}
+
+
+\author{
+  Derek Miller \\
+  Chicago Booth School of Business\\
+  \texttt{dgmxm7@gmail.com} \\
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\lipsum[1]
+\end{abstract}
+
+
+% keywords can be removed
+\keywords{First keyword \and Second keyword \and More}
+
+
+\section{Introduction}
+One way to predict match outcomes from tournament-style sporting events like the FIFA World Cup is to set up the problem as a matrix completion problem.
+
+For the purposes of this case study, I will be using custom built utilities. All code can be found at github.com/dgmiller/fifa-world-cup.
+
+The first thing we need to do is to set up the problem. Part of this is understanding the tournament structure. In particular, the tournament structure for a FIFA World Cup lends itself nicely to Bayesian analysis. Here's how the tournament is structured for the 2019 Women's World Cup.
+
+The first stage of the tournament is called the group phase. Each of 24 teams are assigned to a group with 3 other teams. Each team will compete in at least 3 matches, one for every other team in their group. The match duration is 90 minutes. The possible outcomes for a team are a win, a loss, or a draw. Points are awarded for each outcome: 3 points for a win, 1 point for a draw, 0 points for a loss. The top 16 teams with the most points after the group stage advance to the knockout phase of the tournament. Each round after that eliminates half of the teams from the tournament. The naming conventions for each round are the Round of 16, the quarter finals, the semi-finals, and the final.
+
+The second stage of the tournament is the knockout phase, where a team must win to advance. No draws are allowed in this stage. When two teams are tied at the end of 90 minutes, the match continues for two additional 15-minute periods. If the teams are still tied at the end of extra time, the match proceeds to penalty kicks to determine the winner.
+
+\subsection{Problem Setup}
+
+Now that we have reviewed the tournament structure, let's set up the problem. The heart of the problem is that we know that teams will be eliminated over the course of the tournament but we don't know which ones (except a few at the end of the group stage). So in some sense, we want to be able to compute counterfactuals, the what-if scenarios where every team were to play every other team in the tournament. To do this, let's create a matrix where each team is indexed from 1-24, ordered first by their group (A-F) then by their rank within their group. This list looks like the following:
+
+Now let's create a 24x24 matrix with entries corresponding to the number of goals team $i$ scored against team $j$ in the group stage. The color corresponds to the numeric value of the goals scored with grey corresponding to empty values in the matrix. The empty values are exactly the values we want to fill. This is a matrix completion problem; our goal is to fill in this matrix with some estimate of the number of goals we expect each team to score on average. That is, we want to compute $E[g_{i,j}]$ where $g$ is the number of goals scored by team $i$ against team $j$.
+
+\subsection{Previous Research}
+
+\section{A Poisson Model of Soccer Goals}
+
+\section{Estimation Procedure}
+
+\section{Comparison of Estimation Strategies}
+
+\section{Data and Estimation Results}
+
+\section{Conclusion}
+
+
+\begin{figure}[h]
+  \centering
+  \fbox{\rule[-.5cm]{4cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+  \caption{Sample figure caption.}
+  \label{fig:fig1}
+\end{figure}
+
+\subsection{Tables}
+% See awesome Table~\ref{tab:table}.
+
+% \begin{table}
+%  \caption{Sample table title}
+%   \centering
+%   \begin{tabular}{lll}
+%     \toprule
+%     \multicolumn{2}{c}{Part}                   \\
+%     \cmidrule(r){1-2}
+%     Name     & Description     & Size ($\mu$m) \\
+%     \midrule
+%     Dendrite & Input terminal  & $\sim$100     \\
+%     Axon     & Output terminal & $\sim$10      \\
+%     Soma     & Cell body       & up to $10^6$  \\
+%     \bottomrule
+%   \end{tabular}
+%   \label{tab:table}
+% \end{table}
+
+
+\bibliographystyle{unsrt}  
+%\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
+%%% and comment out the ``thebibliography'' section.
+
+
+%%% Comment out this section when you \bibliography{references} is enabled.
+\begin{thebibliography}{1}
+
+\bibitem{baioblangiardo}
+Gianluca Baio and Marta A. Blangiardo.
+\newblock Bayesian hierarchical model for the prediction of football results
+\newblock year unknown.
+\newblock http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.182.8659\&rep=rep1\&type=pdf
+
+\bibitem{baath}
+Rasmus Baath.
+\newblock Modeling Match Results in Soccer using a Hierarchical Bayesian Poisson Model.
+\newblock 2015.
+\newblock http://sumsar.net/papers/baath\_2015\_modeling\_match\_resluts\_in\_soccer.pdf
+
+\bibitem{implementation}
+\newblock http://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
+
+\bibitem{betting}
+Giovanni Angelini and Luca De Angelis.
+\newblock PARX model for football match predictions.
+\newblock 11 April 2017 in the Journal of Forecasting, Vol 36, Issue 7.
+\newblock https://doi.org/10.1002/for.2471
+
+\end{thebibliography}
+
+
+\end{document}

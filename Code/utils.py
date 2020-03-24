@@ -2,10 +2,20 @@ import pandas as pd
 import numpy as np
 import pystan
 import pickle
-from TEAMS import *
+from Code import TEAMS
 
 
-def get_df(m=1,n=7, model=0):
+def get_teams(year):
+    teams = team_dict[year]['teams']
+    teamsGS = team_dict[year]['teamsGS']
+    teams16 = team_dict[year]['teams16']
+    teamsQF = team_dict[year]['teamsQF']
+    teamsSF = team_dict[year]['teamsSF']
+    teamsFF = team_dict[year]['teamsFF']
+    return teams, teamsGS, teams16, teamsQF, teamsSF, teamsFF
+
+
+def get_df(year, m=1,n=7, model=0):
     """
     Returns the dataframe with data for games in [m, n].
 
@@ -18,7 +28,7 @@ def get_df(m=1,n=7, model=0):
         df (pandas.DataFrame) the dataset from worldcup2019.csv
 
     """
-    df = pd.read_csv("worldcup2019.csv")
+    df = pd.read_csv("../Data/worldcup{0}.csv".format(year))
     df['on_target_rate'] = df['on_target']/df['attempts']
 
     if model == 0:
@@ -38,7 +48,7 @@ def get_df(m=1,n=7, model=0):
     return df
 
 
-def get_team_to_index():
+def get_team_to_index(teams):
     """
     Returns a dictionary mapping a team name to its index.
 
@@ -46,7 +56,7 @@ def get_team_to_index():
         team_to_index (dict) maps to an index that does not start at zero.
     """
     team_to_index = {}
-    for team,i in zip(teams, np.arange(1,25)):
+    for team,i in zip(teams, np.arange(1,len(teams)+1)):
         team_to_index[team] = i
     return team_to_index
    
@@ -62,9 +72,9 @@ def get_goal_matrix(**kwargs):
         G (numpy.array) 24x24 matrix of observed goals with nans elsewhere
     """
     df = get_df(**kwargs)
-    team_to_index = get_team_to_index()
+    team_to_index = get_team_to_index(teams)
 
-    G = -np.ones((24,24))
+    G = -np.ones((len(teams),len(teams)))
     G[G==-1] = np.nan
     for k in range(df.shape[0]):
         i = team_to_index[df.iloc[k]['team']]
@@ -126,10 +136,10 @@ def predict_match_outcome(team1, team2, df=None, verbose=True):
 
 
 def EG_matrix(EG=True):
-    D = np.zeros((24,24))
+    D = np.zeros((len(teams),len(teams)))
     df = get_df()
-    for i in range(24):
-        for j in range(24):
+    for i in range(len(teams)):
+        for j in range(len(teams)):
             EG1,EG2,Pwin1,Pwin2 = predict_match_outcome(teams[i], teams[j], df=df, verbose=False)
             if EG:
                 D[i,j] = EG1
@@ -152,13 +162,13 @@ def get_stan_data(**kwargs):
 
     df = get_df(**kwargs)
     matches = np.array(teamsGS + teams16 + teamsQF + teamsSF + teamsFF)
-    team_to_index = get_team_to_index()
+    team_to_index = get_team_to_index(teams)
     G = get_goal_matrix()
     I = list()
     J = list()
 
     N = matches.shape[0]
-    T = 24
+    T = len(teams)
     Y = np.zeros((T,T))
     for n in range(N):
         i = team_to_index[matches[n,0]]
@@ -202,8 +212,8 @@ def get_stan_data(**kwargs):
 
 
 
-def run_stan_model(model_name, m=1, n=7, **kwargs):
-    data = get_stan_data(m=m, n=n)
+def run_stan_model(model_name, year, m=1, n=7, **kwargs):
+    data = get_stan_data(year, m=m, n=n)
     with open(model_name, 'r') as f:
         stan_model = f.read()
     try:
@@ -214,6 +224,7 @@ def run_stan_model(model_name, m=1, n=7, **kwargs):
             pickle.dump(sm, f)
     FIT = sm.sampling(data, **kwargs)
     return FIT
+
 
 
 ### END ###
