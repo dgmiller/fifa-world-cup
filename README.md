@@ -2,3 +2,10 @@
 *Derek Miller*
 
 A case study in Bayesian modeling. See ```tutorial.ipynb``` for details.
+
+Requires the following python packages:
+
+- `numpy`
+- `pandas`
+- `matplotlib`
+- `pystan`
