@@ -3,6 +3,9 @@ import numpy as np
 from utils import get_team_to_index
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from TEAMS import team_dict
+
+teams = team_dict['2019']['teams']
 
 
 def truncate(i, j=8):
@@ -65,7 +68,7 @@ def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
 
     
 def plot_goals(team1, team2, posterior, teamcor=['r', 'b']):
-    tix = get_team_to_index()
+    tix = get_team_to_index(teams)
     
     fig,ax = plt.subplots(ncols=2, figsize=(16,4))
     #ax = plt.gca()
@@ -89,7 +92,7 @@ def plot_goals(team1, team2, posterior, teamcor=['r', 'b']):
 
     
 def plot_goaldiff(team1, team2, posterior, color1='r', color2='b'):
-    tix = get_team_to_index()
+    tix = get_team_to_index(teams)
     match1 = posterior[:, tix[team1]-1, tix[team2]-1]
     match2 = posterior[:, tix[team2]-1, tix[team1]-1]
     vals,counts = np.unique(match2-match1, return_counts=True)

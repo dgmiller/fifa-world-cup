@@ -4,18 +4,17 @@ import pystan
 import pickle
 from TEAMS import team_dict
 
+year = "2019"
 
-def get_teams(year):
-    teams = team_dict[year]['teams']
-    teamsGS = team_dict[year]['teamsGS']
-    teams16 = team_dict[year]['teams16']
-    teamsQF = team_dict[year]['teamsQF']
-    teamsSF = team_dict[year]['teamsSF']
-    teamsFF = team_dict[year]['teamsFF']
-    return teams, teamsGS, teams16, teamsQF, teamsSF, teamsFF
+teams = team_dict[year]['teams']
+teamsGS = team_dict[year]['teamsGS']
+teams16 = team_dict[year]['teams16']
+teamsQF = team_dict[year]['teamsQF']
+teamsSF = team_dict[year]['teamsSF']
+teamsFF = team_dict[year]['teamsFF']
 
 
-def get_df(year, m=1,n=7, model=0):
+def get_df(year=year, m=1,n=7, model=0):
     """
     Returns the dataframe with data for games in [m, n].
 
@@ -28,7 +27,7 @@ def get_df(year, m=1,n=7, model=0):
         df (pandas.DataFrame) the dataset from worldcup2019.csv
 
     """
-    df = pd.read_csv("../Data/worldcup{0}.csv".format(year))
+    df = pd.read_csv("./worldcup{0}.csv".format(year))
     df['on_target_rate'] = df['on_target']/df['attempts']
 
     if model == 0:
@@ -213,7 +212,7 @@ def get_stan_data(**kwargs):
 
 
 def run_stan_model(model_name, year, m=1, n=7, **kwargs):
-    data = get_stan_data(year, m=m, n=n)
+    data = get_stan_data(m=m, n=n)
     with open(model_name, 'r') as f:
         stan_model = f.read()
     try:
