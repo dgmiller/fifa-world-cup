@@ -226,5 +226,4 @@ def run_stan_model(model_name, year, m=1, n=7, **kwargs):
     return FIT
 
 
-
 ### END ###

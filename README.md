@@ -3,18 +3,9 @@
 *Derek Miller*
 
 
-```python
-import utils
-import vis
-```
-
 ## Introduction
 
-One way to predict match outcomes from tournament-style sporting events like the FIFA World Cup is to set up the problem as a matrix completion problem. For this case study, I will be using data I collected during the FIFA Women's World Cup 2019.
-
-For the purposes of this case study, I will be using custom built utilities. All code can be found at github.com/dgmiller/fifa-world-cup.
-
-The first thing we need to do is to set up the problem. Part of this is understanding the tournament structure. In particular, the tournament structure for a FIFA World Cup lends itself nicely to Bayesian analysis. Here's how the tournament is structured for the 2019 Women's World Cup.
+For this case study, I will be using data I collected during the FIFA Women's World Cup 2019 to predict the winner of actual and hypothetical matches between each team. In particular, the tournament structure for a FIFA World Cup lends itself nicely to Bayesian analysis. Here's how the tournament is structured for the 2019 Women's World Cup.
 
 *Group Phase*
 
@@ -24,6 +15,9 @@ The first stage of the tournament is called the group phase. Each of 24 teams ar
 
 Each round after that eliminates half of the teams from the tournament. The naming conventions for each round are the Round of 16, the quarter finals, the semi-finals, and the final. The second stage of the tournament is the knockout phase, where a team must win to advance. No draws are allowed in this stage. When two teams are tied at the end of 90 minutes, the match continues for two additional 15-minute periods. If the teams are still tied at the end of extra time, the match proceeds to penalty kicks to determine the winner.
 
+<<<<<<< HEAD
+*For a case study on Bayesian modeling, check out ```tutorial.ipynb```.*
+=======
 ## Problem Setup
 
 Now that we have reviewed the tournament structure, let's set up the problem. The heart of the problem is that we know that teams will be eliminated over the course of the tournament but we don't know which ones (except a few at the end of the group stage). So in some sense, we want to be able to compute counterfactuals, the what-if scenarios where every team were to play every other team in the tournament. To do this, let's create a matrix where each team is indexed from 1-24, ordered first by their group (A-F) then by their rank within their group. This list looks like the following:
@@ -837,3 +831,4 @@ vis.plot_goal_matrix(G_all)
 These predictions are much better than those of the previous two models. By adding structure to the model, we were able to improve the predictions.
 
 
+>>>>>>> master
