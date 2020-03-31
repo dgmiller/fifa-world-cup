@@ -182,6 +182,7 @@ def get_stan_data(**kwargs):
     X1 = np.zeros((2,T))
     X2 = np.zeros((2,T))
     X3 = np.zeros((2,T))
+    X4 = np.zeros((2,T))
 
     for team in teams:
         teamdf = df[df['team']==team]
@@ -195,6 +196,9 @@ def get_stan_data(**kwargs):
 
         X3[0,i-1] = teamdf['goals_against'].sum() + 1
         X3[1,i-1] = teamdf['on_target_against'].sum() - X3[0,i-1] + 1
+        
+        X4[0,i-1] = teamdf['attempts'].mean() / 2
+        X4[1,i-1] += .75
 
 
     stan_data = {'N':N,
@@ -205,6 +209,7 @@ def get_stan_data(**kwargs):
                  'X1':X1,
                  'X2':X2,
                  'X3':X3,
+                 'X4':X4,
                  'Y':Y.astype(np.int64)}
     return stan_data
 

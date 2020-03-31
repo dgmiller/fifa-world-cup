@@ -15,13 +15,13 @@ def truncate(i, j=8):
         return i
 
 
-def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, **kwargs):
+def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, figsize=(9,9), **kwargs):
     tempG = G.flatten()
     tempG = np.array([i if ~np.isnan(i) else truncate(i) for i in tempG]).reshape(G.shape)
     tempG += np.diag([np.nan]*tempG.shape[0])
     G += np.diag([np.nan]*tempG.shape[0])
     
-    fig,ax = plt.subplots(figsize=(10,10))
+    fig,ax = plt.subplots(figsize=figsize)
 
     bad = mpl.cm.get_cmap(name=colormap)
     bad.set_bad("grey",alpha=.3)
