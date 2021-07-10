@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
-import pystan
+import stan
 import pickle
 from TEAMS import team_dict
 
-year = "2019"
+year = "UEFA2020"
 
 teams = team_dict[year]['teams']
 teamsGS = team_dict[year]['teamsGS']
@@ -162,7 +162,7 @@ def get_stan_data(**kwargs):
     df = get_df(**kwargs)
     matches = np.array(teamsGS + teams16 + teamsQF + teamsSF + teamsFF)
     team_to_index = get_team_to_index(teams)
-    G = get_goal_matrix()
+    G = get_goal_matrix() # uses get_df()
     I = list()
     J = list()
 
@@ -214,19 +214,12 @@ def get_stan_data(**kwargs):
     return stan_data
 
 
-
-
 def run_stan_model(model_name, year, m=1, n=7, **kwargs):
     data = get_stan_data(m=m, n=n)
     with open(model_name, 'r') as f:
         stan_model = f.read()
-    try:
-        sm = pickle.load(open('{0}.pkl'.format(model_name),'rb'))
-    except:
-        sm = pystan.StanModel(model_code=stan_model)
-        with open('{0}.pkl'.format(model_name), 'wb') as f:
-            pickle.dump(sm, f)
-    FIT = sm.sampling(data, **kwargs)
+    posterior = stan.build(stan_model, data)
+    FIT = posterior.sample(**kwargs)
     return FIT
 
 

@@ -5,7 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from TEAMS import team_dict
 
-teams = team_dict['2019']['teams']
+teams = team_dict['UEFA2020']['teams']
 
 
 def truncate(i, j=8):
@@ -23,7 +23,7 @@ def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, figsize=(9,9),
     
     fig,ax = plt.subplots(figsize=figsize)
 
-    bad = mpl.cm.get_cmap(name=colormap)
+    bad = mpl.cm.get_cmap(name=colormap).copy()
     bad.set_bad("grey",alpha=.3)
     if score:
         plt.imshow(tempG-tempG.T, cmap=bad, **kwargs)
