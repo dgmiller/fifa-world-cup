@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import stan
+import pystan
 import pickle
 from TEAMS import team_dict
 
@@ -218,8 +218,8 @@ def run_stan_model(model_name, year, m=1, n=7, **kwargs):
     data = get_stan_data(m=m, n=n)
     with open(model_name, 'r') as f:
         stan_model = f.read()
-    posterior = stan.build(stan_model, data)
-    FIT = posterior.sample(**kwargs)
+    posterior = pystan.StanModel(model_code=stan_model)
+    FIT = posterior.sampling(data, **kwargs)
     return FIT
 
 

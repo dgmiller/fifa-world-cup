@@ -23,7 +23,7 @@ def plot_goal_matrix(G, score=False, colormap='Reds', fname=None, figsize=(9,9),
     
     fig,ax = plt.subplots(figsize=figsize)
 
-    bad = mpl.cm.get_cmap(name=colormap).copy()
+    bad = mpl.cm.get_cmap(name=colormap)
     bad.set_bad("grey",alpha=.3)
     if score:
         plt.imshow(tempG-tempG.T, cmap=bad, **kwargs)
